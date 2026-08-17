@@ -1,0 +1,62 @@
+# Environment variables / secrets
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDEs
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# ML artifacts / generated files
+artifacts/
+models/
+*.pkl
+*.joblib
+*.h5
+*.pt
+*.pth
+
+# Data
+data/raw/
+data/interim/
+data/processed/
+*.csv
+*.parquet
+
+# Temporary files
+*.tmp
+*.temp
+
+# Test/cache
+.pytest_cache/
+.coverage
+htmlcov/
