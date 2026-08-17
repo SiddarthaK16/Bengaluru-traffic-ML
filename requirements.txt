@@ -2,6 +2,7 @@ numpy
 pandas
 python-dotenv
 pymongo
-
+requests
+pyyaml
 
 -e .
