@@ -8,14 +8,14 @@ class TrafficEntity:
     latitude: float
     longitude: float
 
-    current_speed: float
-    free_flow_speed: float
+    currentSpeed: float
+    freeFlowSpeed: float
 
-    current_travel_time: float
-    free_flow_travel_time: float
+    currentTravelTime: float
+    freeFlowTravelTime: float
 
     confidence: float
-    road_closure: bool
+    roadClosure: bool
 
     frc: str
 

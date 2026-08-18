@@ -15,10 +15,10 @@ class LocationResolver:
 
     def __init__(self):
         try:
-            self.api_key = os.getenv("TOMTOM_GC_API_KEY")
+            self.api_key = os.getenv("TOMTOM_SEARCH_API_KEY")
 
             if not self.api_key:
-                raise ValueError("TOMTOM_GC_API_KEY is not set")
+                raise ValueError("TOMTOM_SEARCH_API_KEY is not set")
 
             self.base_url = (
                 "https://api.tomtom.com/search/2/search/"
@@ -37,9 +37,9 @@ class LocationResolver:
     def search_location(self, location: str) -> dict:
 
         try:
-            query = (
-                f"{location}, Bengaluru, Karnataka, India"
-            )
+            query = location
+            
+            
 
             url = f"{self.base_url}{query}.json"
 

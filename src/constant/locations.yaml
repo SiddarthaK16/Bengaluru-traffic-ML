@@ -1,20 +1,72 @@
 locations:
-  - yeshwanthpur
-  - hebbal
-  - yelahanka
-  - madavara
-  - kengeri
-  - indiranagar
-  - kr_puram
-  - koramangala
-  - silk_board
-  - electronic_city
-  - chandapura
-  - jayanagar
-  - bellandur
-  - whitefield
-  - malleshwaram
-  - fraser_town
-  - konanakunte
-  - peenya
-  
+  yeshwanthpur:
+    latitude: 13.024075
+    longitude: 77.550171
+
+  hebbal:
+    latitude: 13.044392
+    longitude: 77.592245
+
+  yelahanka:
+    latitude: 13.086090
+    longitude: 77.555638
+
+  madavara:
+    latitude: 13.055492
+    longitude: 77.473276
+
+  kengeri:
+    latitude: 12.914274
+    longitude: 77.486356
+
+  indiranagar:
+    latitude: 12.963700
+    longitude: 77.641800
+
+  kr_puram:
+    latitude: 13.023500
+    longitude: 77.716400
+
+  koramangala:
+    latitude: 12.931561
+    longitude: 77.625558
+
+  silk_board:
+    latitude: 12.914202
+    longitude: 77.625029
+
+  electronic_city:
+    latitude: 12.843866
+    longitude: 77.665459
+
+  chandapura:
+    latitude: 12.803144
+    longitude: 77.704889
+
+  jayanagar:
+    latitude: 12.932488
+    longitude: 77.581810
+
+  bellandur:
+    latitude: 12.926229
+    longitude: 77.676688
+
+  whitefield:
+    latitude: 12.972238
+    longitude: 77.717851
+
+  malleshwaram:
+    latitude: 13.005623
+    longitude: 77.569101
+
+  fraser_town:
+    latitude: 13.001104
+    longitude: 77.611704
+
+  konanakunte:
+    latitude: 12.888925
+    longitude: 77.562834
+
+  peenya:
+    latitude: 13.010044
+    longitude: 77.513123
