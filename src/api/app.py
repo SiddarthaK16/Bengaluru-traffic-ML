@@ -270,7 +270,6 @@ def calculate_route(
                 "traffic": "true",
                 "departAt": departure_value,
                 "computeTravelTimeFor": "all",
-                "routeType": "fastest",
             },
             timeout=20,
         )
