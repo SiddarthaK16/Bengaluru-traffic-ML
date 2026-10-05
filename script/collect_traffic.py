@@ -1,4 +1,5 @@
 import time
+from pathlib import Path
 import yaml
 
 from dataclasses import asdict
@@ -9,19 +10,12 @@ from src.logging.logger import logging
 
 
 COLLECTION_INTERVAL = 15 * 60
+ROOT = Path(__file__).resolve().parents[1]
 
 
-def collect_and_store():
+def collect_and_store(collector, mongo_client, locations):
 
     try:
-        with open("src/constant/locations.yaml", "r") as file:
-            config = yaml.safe_load(file)
-
-        locations = config["locations"]
-
-        collector = TrafficCollector()
-        mongo_client = MongoDBClient()
-
         results = collector.collect_all(locations)
 
         documents = [asdict(entity) for entity in results]
@@ -42,11 +36,17 @@ def collect_and_store():
 
 
 if __name__ == "__main__":
+    with (ROOT / "src" / "constant" / "locations.yaml").open() as file:
+        locations = yaml.safe_load(file)["locations"]
 
-    while True:
-
-        collect_and_store()
-
-        print("Sleeping for 15 minutes...")
-
-        time.sleep(COLLECTION_INTERVAL)
+    collector = TrafficCollector()
+    mongo_client = MongoDBClient()
+    try:
+        while True:
+            collect_and_store(collector, mongo_client, locations)
+            print("Sleeping for 15 minutes...")
+            time.sleep(COLLECTION_INTERVAL)
+    except KeyboardInterrupt:
+        print("Stopping traffic collector...")
+    finally:
+        mongo_client.close()

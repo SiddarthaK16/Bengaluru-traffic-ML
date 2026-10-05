@@ -21,7 +21,7 @@ class MongoDBClient:
             if not self.mongo_uri:
                 raise ValueError("MONGO_DB_URL is not set")
 
-            self.client = MongoClient(self.mongo_uri)
+            self.client = MongoClient(self.mongo_uri, serverSelectionTimeoutMS=10000)
 
             self.client.admin.command("ping")
 
@@ -57,3 +57,6 @@ class MongoDBClient:
             logging.error("Error while inserting documents into MongoDB")
 
             raise CustomException(e, sys)
+
+    def close(self):
+        self.client.close()

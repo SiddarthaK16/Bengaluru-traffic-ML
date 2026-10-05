@@ -1,8 +1,11 @@
-numpy
-pandas
+polars
+matplotlib
 python-dotenv
 pymongo
 requests
 pyyaml
-
+jupyterlab
+ipykernel
+fastapi
+uvicorn[standard]
 -e .

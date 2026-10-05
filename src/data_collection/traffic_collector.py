@@ -1,4 +1,6 @@
 import sys
+from datetime import datetime, timezone
+from uuid import uuid4
 
 from src.logging.logger import logging
 from src.exception.exception import CustomException
@@ -22,7 +24,8 @@ class TrafficCollector:
         self,
         location_name: str,
         latitude: float,
-        longitude: float
+        longitude: float,
+        collection_run_id: str | None = None,
     ) -> TrafficEntity:
 
         try:
@@ -34,6 +37,8 @@ class TrafficCollector:
             flow_data = data["flowSegmentData"]
 
             entity = TrafficEntity(
+                location=location_name,
+                collection_run_id=collection_run_id or str(uuid4()),
                 latitude=latitude,
                 longitude=longitude,
                 currentSpeed=flow_data["currentSpeed"],
@@ -43,7 +48,7 @@ class TrafficCollector:
                 confidence=flow_data["confidence"],
                 roadClosure=flow_data["roadClosure"],
                 frc=flow_data["frc"],
-                timestamp=__import__("datetime").datetime.now()
+                timestamp=datetime.now(timezone.utc),
             )
 
             logging.info(
@@ -60,13 +65,15 @@ class TrafficCollector:
 
         try:
             results = []
+            collection_run_id = str(uuid4())
 
             for location_name, coordinates in locations.items():
 
                 entity = self.collect_location(
                     location_name=location_name,
                     latitude=coordinates["latitude"],
-                    longitude=coordinates["longitude"]
+                    longitude=coordinates["longitude"],
+                    collection_run_id=collection_run_id,
                 )
 
                 results.append(entity)

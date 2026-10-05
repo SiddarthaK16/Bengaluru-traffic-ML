@@ -71,6 +71,28 @@ Coordinates for these locations will be resolved and validated during the data c
 
 ---
 
+## 📊 Data and Forecasting
+
+The target is an interactive Bengaluru map where a user selects an origin and destination and receives a future traffic forecast for that trip. The current collector samples 18 fixed road points every 15 minutes, so the first forecasting milestone is a reliable history and a forecast for monitored locations. Route-level forecasts for arbitrary points will need route and road-segment traffic data in a later phase.
+
+Use `python script/inspect_traffic_data.py` to review collection coverage and `python script/prepare_traffic_panel.py` to export the historical feature table to `data/processed/traffic_panel.csv`. Both scripts read from MongoDB; configure `MONGO_DB_URL` in a local `.env` file before running them. The collector writes new records with a location name, a shared collection-run ID, and a UTC timestamp.
+
+Run `python script/train_traffic_model.py` to train a pooled TensorFlow LSTM for the next monitored reading (about 15 minutes ahead). It uses a chronological train/validation/holdout split, compares the holdout with a persistence baseline, trains for up to 100 epochs with early stopping, and saves the Keras model and metadata under `artifacts/`. Install its dependencies with `python -m pip install -r requirements-model.txt`. Use Python 3.12 for model training; TensorFlow's current pip support does not include this workspace's Python 3.14 environment. This point-level model does not yet forecast travel time for arbitrary routes.
+
+## 🗺️ Live Map
+
+The web app displays the newest stored readings for the 18 monitored locations and lets a user select any two points within Bengaluru. It refreshes readings from MongoDB once a minute. Trip routing and scheduled departure ETAs use TomTom's Routing API with traffic enabled; this is a traffic-aware routing estimate, while the project's learned model currently forecasts monitored points only.
+
+Create `.env` from `.env.example`, then start both the web API and the continuous collector:
+
+```bash
+docker compose up --build
+```
+
+Open `http://localhost:8000`. The collector runs as a separate service and stores a collection every 15 minutes. The web service exposes `/api/health`, `/api/locations`, `/api/traffic/latest`, and `/api/route`. Keep the MongoDB URI and TomTom key in `.env`; the route key stays on the server.
+
+GitHub Actions runs syntax checks and builds the Docker image on pushes and pull requests to `main`. A deployment target is still needed to add an automated deploy step.
+
 ## 🔌 Data Sources
 
 ### Traffic Data
@@ -101,4 +123,3 @@ Weather data will be integrated later as an additional feature source.
 This will allow the project to study relationships between:
 
 **Traffic + Weather + Time + Location**
-

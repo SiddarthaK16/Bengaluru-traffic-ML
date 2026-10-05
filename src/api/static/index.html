@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#10191c" />
+    <title>Bengaluru Traffic</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="/" aria-label="Bengaluru Traffic home">
+          <span class="brand-mark">B</span>
+          <span><strong>BLR FLOW</strong><small>TRAFFIC INTELLIGENCE</small></span>
+        </a>
+        <div class="live-status"><span class="pulse"></span><span id="live-label">Connecting to traffic feed</span></div>
+      </header>
+
+      <section class="workspace">
+        <aside class="sidebar">
+          <div class="eyebrow">BENGALURU · LIVE NETWORK</div>
+          <h1>Plan your<br /><em>next move.</em></h1>
+          <p class="intro">Choose two points on the map. Traffic-aware routing estimates your journey for the time you plan to leave.</p>
+
+          <div class="selection-card">
+            <button class="point-row selected" id="origin-button" type="button">
+              <span class="point-icon origin-icon"></span>
+              <span class="point-copy"><small>ORIGIN <kbd>1</kbd></small><strong id="origin-label">Choose on map</strong></span>
+              <span class="pick-hint">PICK</span>
+            </button>
+            <div class="route-connector"></div>
+            <button class="point-row" id="destination-button" type="button">
+              <span class="point-icon destination-icon"></span>
+              <span class="point-copy"><small>DESTINATION <kbd>2</kbd></small><strong id="destination-label">Choose on map</strong></span>
+              <span class="pick-hint">PICK</span>
+            </button>
+          </div>
+
+          <label class="field-label" for="departure-time">DEPARTURE TIME</label>
+          <input id="departure-time" type="datetime-local" />
+          <button class="primary-button" id="route-button" type="button" disabled>
+            <span>Calculate my trip</span><span aria-hidden="true">↗</span>
+          </button>
+          <button class="text-button" id="clear-button" type="button">Clear route</button>
+
+          <section class="route-result hidden" id="route-result" aria-live="polite">
+            <div class="result-label">ESTIMATED JOURNEY</div>
+            <div class="result-time" id="route-duration">—</div>
+            <div class="result-meta"><span id="route-distance">—</span><span id="route-delay">—</span></div>
+            <div class="arrival-row"><span>Arrival</span><strong id="arrival-time">—</strong></div>
+            <p class="source-note">Traffic-aware estimate from TomTom</p>
+          </section>
+          <p class="error-message hidden" id="error-message" role="status"></p>
+
+          <div class="legend">
+            <div class="legend-heading">MONITORED ROADS <span id="location-count">—</span></div>
+            <div class="legend-row"><span class="legend-dot free"></span>Moving well <span class="legend-range">≥ 80% of free-flow</span></div>
+            <div class="legend-row"><span class="legend-dot busy"></span>Slowing down <span class="legend-range">50–80%</span></div>
+            <div class="legend-row"><span class="legend-dot slow"></span>Heavy traffic <span class="legend-range">&lt; 50%</span></div>
+          </div>
+          <footer>Traffic readings refresh automatically · Map © OpenStreetMap contributors</footer>
+        </aside>
+        <section class="map-area" aria-label="Interactive map of Bengaluru">
+          <div class="map-instructions"><span class="tap-icon">⌖</span><span id="map-hint">Select an origin, then a destination</span></div>
+          <div id="map"></div>
+          <div class="map-attribution-note">Traffic markers show the latest readings at monitored locations.</div>
+        </section>
+      </section>
+    </main>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="/static/app.js"></script>
+  </body>
+</html>
