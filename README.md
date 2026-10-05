@@ -79,6 +79,8 @@ Use `python script/inspect_traffic_data.py` to review collection coverage and `p
 
 The committed LSTM baseline is in `artifacts/traffic_lstm_model.keras`, with its chronological holdout scores in `artifacts/traffic_lstm_model.json`. Run `python script/train_traffic_model.py` to train the next candidate, a pooled TensorFlow GRU for the next monitored reading (about 15 minutes ahead). It uses the same chronological train/validation/holdout split and persistence comparison, trains for up to 100 epochs with early stopping, and writes `artifacts/traffic_gru_model.keras` plus its metadata. Install its dependencies with `python -m pip install -r requirements-model.txt`. Use Python 3.12 for model training; TensorFlow's current pip support does not include this workspace's Python 3.14 environment. The point-level models do not yet forecast travel time for arbitrary routes.
 
+To compare tabular baselines, install `python -m pip install -r requirements-catboost.txt` and run `python script/train_catboost_models.py`. It evaluates a local-history CatBoost and a network-context CatBoost on the same chronological holdout, with the persistence forecast as a reference. The CatBoost model files and comparison metadata are written to `artifacts/`.
+
 ## 🗺️ Live Map
 
 The web app displays the newest stored readings for the 18 monitored locations and lets a user select any two points within Bengaluru. It refreshes readings from MongoDB once a minute. Trip routing and scheduled departure ETAs use TomTom's Routing API with traffic enabled; this is a traffic-aware routing estimate, while the project's learned model currently forecasts monitored points only.
