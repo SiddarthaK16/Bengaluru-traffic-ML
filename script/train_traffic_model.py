@@ -1,4 +1,4 @@
-"""Train and evaluate a pooled TensorFlow LSTM for the next traffic reading."""
+"""Train and evaluate a pooled TensorFlow GRU for the next traffic reading."""
 
 import csv
 from datetime import datetime
@@ -11,8 +11,8 @@ import tensorflow as tf
 
 ROOT = Path(__file__).resolve().parents[1]
 PANEL_PATH = ROOT / "data" / "processed" / "traffic_panel.csv"
-MODEL_PATH = ROOT / "artifacts" / "traffic_lstm_model.keras"
-METADATA_PATH = ROOT / "artifacts" / "traffic_lstm_model.json"
+MODEL_PATH = ROOT / "artifacts" / "traffic_gru_model.keras"
+METADATA_PATH = ROOT / "artifacts" / "traffic_gru_model.json"
 LOOKBACK = 4
 HOLDOUT_FRACTION = 0.2
 MAX_EPOCHS = 100
@@ -102,7 +102,7 @@ def make_model(location_count):
     history_input = tf.keras.Input(shape=(LOOKBACK, 1), name="traffic_history")
     context_input = tf.keras.Input(shape=(location_count + 4,), name="location_and_time")
 
-    sequence = tf.keras.layers.LSTM(32, dropout=0.1, name="traffic_lstm")(history_input)
+    sequence = tf.keras.layers.GRU(32, dropout=0.1, name="traffic_gru")(history_input)
     combined = tf.keras.layers.Concatenate()([sequence, context_input])
     hidden = tf.keras.layers.Dense(16, activation="relu")(combined)
     output = tf.keras.layers.Dense(1, name="next_congestion_ratio")(hidden)
@@ -149,7 +149,7 @@ def main():
 
     samples = build_samples(read_panel())
     if len(samples["targets"]) < 20:
-        raise SystemExit("Not enough valid lookback windows to train an LSTM.")
+        raise SystemExit("Not enough valid lookback windows to train a GRU.")
 
     holdout_cutoff = chronological_partition(
         samples["timestamps"], 1 - HOLDOUT_FRACTION
@@ -194,7 +194,7 @@ def main():
         verbose=0,
     )
     best_epoch = int(np.argmin(history.history["val_loss"]) + 1)
-    print(f"Selected training epochs from temporal validation: {best_epoch} / {MAX_EPOCHS}")
+    print(f"Selected GRU epochs from temporal validation: {best_epoch} / {MAX_EPOCHS}")
 
     evaluation_model = make_model(len(samples["locations"]))
     evaluation_model.fit(
@@ -221,18 +221,18 @@ def main():
             f"  {location}: n={int(mask.sum()):3d} | "
             f"persistence MAE {score(actual[mask], persistence[mask])['mae']:.4f}, "
             f"RMSE {score(actual[mask], persistence[mask])['rmse']:.4f} | "
-            f"LSTM MAE {score(actual[mask], predicted[mask])['mae']:.4f}, "
+            f"GRU MAE {score(actual[mask], predicted[mask])['mae']:.4f}, "
             f"RMSE {score(actual[mask], predicted[mask])['rmse']:.4f}"
         )
 
     holdout_metrics = {
         "persistence": score(actual, persistence),
-        "lstm": score(actual, predicted),
+        "gru": score(actual, predicted),
         "samples": int(len(test_indices)),
     }
     print("Overall holdout:")
     print(f"  persistence: {holdout_metrics['persistence']}")
-    print(f"  LSTM:        {holdout_metrics['lstm']}")
+    print(f"  GRU:          {holdout_metrics['gru']}")
 
     # Refit on all available sequences using the epoch count selected above.
     final_model = make_model(len(samples["locations"]))
@@ -248,7 +248,7 @@ def main():
     final_model.save(MODEL_PATH)
 
     metadata = {
-        "model_type": "TensorFlow Keras LSTM",
+        "model_type": "TensorFlow Keras GRU",
         "target": "next_reading_congestion_ratio",
         "nominal_horizon_minutes": 15,
         "lookback_readings": LOOKBACK,

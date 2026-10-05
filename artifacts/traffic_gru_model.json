@@ -1,0 +1,47 @@
+{
+  "model_type": "TensorFlow Keras GRU",
+  "target": "next_reading_congestion_ratio",
+  "nominal_horizon_minutes": 15,
+  "lookback_readings": 4,
+  "max_epochs": 100,
+  "selected_epochs": 27,
+  "batch_size": 64,
+  "features": [
+    "four chronological congestion ratios",
+    "one-hot monitored location",
+    "target hour and weekday cycles"
+  ],
+  "locations": [
+    "yeshwanthpur",
+    "hebbal",
+    "yelahanka",
+    "madavara",
+    "kengeri",
+    "indiranagar",
+    "kr_puram",
+    "koramangala",
+    "silk_board",
+    "electronic_city",
+    "chandapura",
+    "jayanagar",
+    "bellandur",
+    "whitefield",
+    "malleshwaram",
+    "fraser_town",
+    "konanakunte",
+    "peenya"
+  ],
+  "holdout_cutoff": "2026-09-17 20:41:57.082500",
+  "trained_through": "2026-09-29 19:04:47.425000",
+  "holdout_metrics": {
+    "persistence": {
+      "mae": 0.054162606596946716,
+      "rmse": 0.093392513692379
+    },
+    "gru": {
+      "mae": 0.0840599462389946,
+      "rmse": 0.10271517187356949
+    },
+    "samples": 3330
+  }
+}
