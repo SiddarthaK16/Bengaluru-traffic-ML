@@ -3,6 +3,7 @@
 from datetime import datetime
 import csv
 import json
+import os
 from pathlib import Path
 
 import numpy as np
@@ -208,7 +209,9 @@ def evaluate_variant(name, feature_key, examples, train_indices, test_indices, f
     )
     final_model.fit(final_pool, verbose=False)
     model_path = ARTIFACT_DIR / f"traffic_catboost_{name}.cbm"
-    final_model.save_model(model_path)
+    temporary_model_path = model_path.with_suffix(".cbm.tmp")
+    final_model.save_model(temporary_model_path, format="cbm")
+    os.replace(temporary_model_path, model_path)
     return metrics, best_iterations, model_path
 
 
@@ -275,7 +278,9 @@ def main():
     }
     ARTIFACT_DIR.mkdir(parents=True, exist_ok=True)
     metadata_path = ARTIFACT_DIR / "traffic_catboost_comparison.json"
-    metadata_path.write_text(json.dumps(metadata, indent=2) + "\n")
+    temporary_metadata_path = metadata_path.with_suffix(".json.tmp")
+    temporary_metadata_path.write_text(json.dumps(metadata, indent=2) + "\n")
+    os.replace(temporary_metadata_path, metadata_path)
     print(f"Saved comparison metadata: {metadata_path}")
 
 

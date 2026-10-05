@@ -79,7 +79,11 @@ Use `python script/inspect_traffic_data.py` to review collection coverage and `p
 
 The committed LSTM baseline is in `artifacts/traffic_lstm_model.keras`, with its chronological holdout scores in `artifacts/traffic_lstm_model.json`. Run `python script/train_traffic_model.py` to train the next candidate, a pooled TensorFlow GRU for the next monitored reading (about 15 minutes ahead). It uses the same chronological train/validation/holdout split and persistence comparison, trains for up to 100 epochs with early stopping, and writes `artifacts/traffic_gru_model.keras` plus its metadata. Install its dependencies with `python -m pip install -r requirements-model.txt`. Use Python 3.12 for model training; TensorFlow's current pip support does not include this workspace's Python 3.14 environment. The point-level models do not yet forecast travel time for arbitrary routes.
 
-To compare tabular baselines, install `python -m pip install -r requirements-catboost.txt` and run `python script/train_catboost_models.py`. It evaluates a local-history CatBoost and a network-context CatBoost on the same chronological holdout, with the persistence forecast as a reference. The CatBoost model files and comparison metadata are written to `artifacts/`.
+To compare tabular baselines manually, install `python -m pip install -r requirements-catboost.txt` and run `python script/train_catboost_models.py`. It evaluates a local-history CatBoost and a network-context CatBoost on the same chronological holdout, with the persistence forecast as a reference. The CatBoost model files and comparison metadata are written to `artifacts/`.
+
+## 🔁 Automatic Forecast Updates
+
+`docker compose up --build` starts a trainer alongside the collector and web app. The trainer watches for complete 18-location collection rounds, refreshes the MongoDB-backed feature panel, and retrains both CatBoost candidates hourly when new rounds are available. A first training run starts as soon as a complete round is present. The latest local-history CatBoost artifact is shared with the web API through a persistent Docker volume; the API reloads it after each replacement. The map already refreshes live readings every minute and now shows the model's next-15-minute congestion forecast in each monitored point's popup. Forecasts appear after enough recent readings are available. The two-point route ETA remains TomTom's traffic-aware routing estimate; the learned model does not yet predict arbitrary route travel times.
 
 ## 🗺️ Live Map
 
@@ -91,7 +95,7 @@ Create `.env` from `.env.example`, then start both the web API and the continuou
 docker compose up --build
 ```
 
-Open `http://localhost:8000`. The collector runs as a separate service and stores a collection every 15 minutes. The web service exposes `/api/health`, `/api/locations`, `/api/traffic/latest`, and `/api/route`. Keep the MongoDB URI and TomTom key in `.env`; the route key stays on the server.
+Open `http://localhost:8000`. The collector stores a collection every 15 minutes. The web service exposes `/api/health`, `/api/locations`, `/api/traffic/latest`, and `/api/route`. Keep the MongoDB URI and TomTom key in `.env`; the route key stays on the server. Model artifacts are stored in the `model-artifacts` Docker volume, so restarting the services preserves the latest trained model.
 
 GitHub Actions runs syntax checks and builds the Docker image on pushes and pull requests to `main`. A deployment target is still needed to add an automated deploy step.
 

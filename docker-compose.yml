@@ -3,6 +3,8 @@ services:
     build: .
     command: uvicorn src.api.app:app --host 0.0.0.0 --port 8000
     env_file: .env
+    volumes:
+      - model-artifacts:/app/artifacts
     ports:
       - "8000:8000"
     restart: unless-stopped
@@ -17,3 +19,14 @@ services:
     command: python script/collect_traffic.py
     env_file: .env
     restart: unless-stopped
+
+  trainer:
+    build: .
+    command: python script/run_live_training.py
+    env_file: .env
+    volumes:
+      - model-artifacts:/app/artifacts
+    restart: unless-stopped
+
+volumes:
+  model-artifacts:

@@ -76,8 +76,11 @@ function renderTraffic(records, updatedAt) {
     const icon = L.divIcon({ className: '', html: `<span class="traffic-marker ${level}"></span>`, iconSize: [18, 18], iconAnchor: [9, 9] });
     const speed = record.current_speed_kmh == null ? '—' : `${record.current_speed_kmh} km/h`;
     const ratio = record.congestion_ratio == null ? 'unavailable' : `${Math.round(record.congestion_ratio * 100)}% of free-flow speed`;
+    const forecast = record.predicted_congestion_ratio == null
+      ? '15 min forecast unavailable'
+      : `15 min forecast: ${Math.round(record.predicted_congestion_ratio * 100)}% of free-flow speed`;
     L.marker([record.latitude, record.longitude], { icon }).addTo(trafficLayer)
-      .bindPopup(`<div class="popup-title">${record.location.replaceAll('_', ' ')}</div><div class="popup-sub">${speed} · ${ratio}<br/>Observed ${formattedTime(record.timestamp)}</div>`);
+      .bindPopup(`<div class="popup-title">${record.location.replaceAll('_', ' ')}</div><div class="popup-sub">${speed} · ${ratio}<br/>${forecast}<br/>Observed ${formattedTime(record.timestamp)}</div>`);
   }
   document.getElementById('location-count').textContent = `${records.length} / ${document.getElementById('location-count').dataset.expected || records.length}`;
   document.getElementById('live-label').textContent = updatedAt ? `Feed updated ${formattedTime(updatedAt)}` : 'No traffic observations yet';

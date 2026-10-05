@@ -1,7 +1,9 @@
 """HTTP endpoints for live monitored traffic and traffic-aware route planning."""
 
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from functools import lru_cache
+import json
+import math
 import os
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -11,6 +13,7 @@ import yaml
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
+from catboost import CatBoostError, CatBoostRegressor
 from pymongo import MongoClient
 from pymongo.errors import PyMongoError
 
@@ -19,6 +22,8 @@ ROOT = Path(__file__).resolve().parents[2]
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 DATABASE_NAME = "bengaluru_traffic"
 COLLECTION_NAME = "traffic_data"
+MODEL_PATH = ROOT / "artifacts" / "traffic_catboost_local.cbm"
+MODEL_METADATA_PATH = ROOT / "artifacts" / "traffic_catboost_comparison.json"
 MATCH_TOLERANCE_DEGREES = 0.00001
 BENGALURU_BOUNDS = {
     "min_latitude": 12.70,
@@ -68,6 +73,51 @@ def iso_timestamp(value):
     return value.isoformat()
 
 
+def forecast_model():
+    if not MODEL_PATH.exists():
+        return None
+    modified = MODEL_PATH.stat().st_mtime
+    model, loaded_modified = _forecast_model_cached()
+    if modified != loaded_modified:
+        _forecast_model_cached.cache_clear()
+        model, loaded_modified = _forecast_model_cached()
+    return model
+
+
+@lru_cache(maxsize=1)
+def _forecast_model_cached():
+    model = CatBoostRegressor()
+    model.load_model(str(MODEL_PATH))
+    return model, MODEL_PATH.stat().st_mtime
+
+
+def time_features(timestamp):
+    hour = timestamp.hour + timestamp.minute / 60 + timestamp.second / 3600
+    day_phase = (timestamp.weekday() + hour / 24) / 7
+    return [
+        math.sin(2 * math.pi * hour / 24),
+        math.cos(2 * math.pi * hour / 24),
+        math.sin(2 * math.pi * day_phase),
+        math.cos(2 * math.pi * day_phase),
+    ]
+
+
+def predict_location(model, location, history):
+    if model is None or len(history) < 4:
+        return None
+    if any(
+        (history[index]["timestamp"] - history[index + 1]["timestamp"]).total_seconds() > 30 * 60
+        for index in range(3)
+    ):
+        return None
+    target_time = history[0]["timestamp"] + timedelta(minutes=15)
+    features = [location, *(item["ratio"] for item in history[:4]), *time_features(target_time)]
+    try:
+        return max(0.0, float(model.predict([features])[0]))
+    except (CatBoostError, ValueError, TypeError):
+        return None
+
+
 @app.get("/", include_in_schema=False)
 def index():
     return FileResponse(STATIC_DIR / "index.html")
@@ -88,7 +138,10 @@ def latest_traffic():
     try:
         collection = mongo_client()[DATABASE_NAME][COLLECTION_NAME]
         locations_by_name = load_locations()
+        model = forecast_model()
         latest = {}
+        histories = {name: [] for name in locations_by_name}
+        newest_timestamp = None
         projection = {
             "_id": 0,
             "location": 1,
@@ -105,8 +158,18 @@ def latest_traffic():
         }
         cursor = collection.find({}, projection).sort("timestamp", -1)
         for record in cursor:
+            record_timestamp = record.get("timestamp")
+            if newest_timestamp is None and record_timestamp is not None:
+                newest_timestamp = record_timestamp
+            if (
+                model is not None
+                and newest_timestamp is not None
+                and record_timestamp is not None
+                and newest_timestamp - record_timestamp > timedelta(hours=2)
+            ):
+                break
             location_name = match_location(record, locations_by_name)
-            if location_name is None or location_name in latest:
+            if location_name is None:
                 continue
             current_speed = record.get("currentSpeed")
             free_flow_speed = record.get("freeFlowSpeed")
@@ -115,22 +178,41 @@ def latest_traffic():
                 if current_speed is not None and free_flow_speed not in (None, 0)
                 else None
             )
-            latest[location_name] = {
-                "location": location_name,
-                "latitude": record.get("latitude"),
-                "longitude": record.get("longitude"),
-                "timestamp": iso_timestamp(record.get("timestamp")),
-                "current_speed_kmh": current_speed,
-                "free_flow_speed_kmh": free_flow_speed,
-                "congestion_ratio": ratio,
-                "current_travel_time_seconds": record.get("currentTravelTime"),
-                "free_flow_travel_time_seconds": record.get("freeFlowTravelTime"),
-                "confidence": record.get("confidence"),
-                "road_closure": record.get("roadClosure"),
-                "frc": record.get("frc"),
-            }
-            if len(latest) == len(locations_by_name):
+            if location_name not in latest:
+                latest[location_name] = {
+                    "location": location_name,
+                    "latitude": record.get("latitude"),
+                    "longitude": record.get("longitude"),
+                    "timestamp": iso_timestamp(record.get("timestamp")),
+                    "current_speed_kmh": current_speed,
+                    "free_flow_speed_kmh": free_flow_speed,
+                    "congestion_ratio": ratio,
+                    "current_travel_time_seconds": record.get("currentTravelTime"),
+                    "free_flow_travel_time_seconds": record.get("freeFlowTravelTime"),
+                    "confidence": record.get("confidence"),
+                    "road_closure": record.get("roadClosure"),
+                    "frc": record.get("frc"),
+                }
+            if ratio is not None and record.get("timestamp") is not None and len(histories[location_name]) < 4:
+                histories[location_name].append({"timestamp": record.get("timestamp"), "ratio": ratio})
+            enough_history = all(len(items) >= 4 for items in histories.values())
+            if (
+                (model is not None and enough_history)
+                or (model is None and len(latest) == len(locations_by_name))
+            ):
                 break
+        for location_name, item in latest.items():
+            item["predicted_congestion_ratio"] = predict_location(
+                model, location_name, histories[location_name]
+            )
+            item["forecast_horizon_minutes"] = 15
+        trained_at = None
+        if MODEL_METADATA_PATH.exists():
+            try:
+                metadata = json.loads(MODEL_METADATA_PATH.read_text())
+                trained_at = metadata.get("trained_through")
+            except (OSError, ValueError):
+                pass
         return {
             "updated_at": max(
                 (item["timestamp"] for item in latest.values() if item["timestamp"]),
@@ -138,6 +220,8 @@ def latest_traffic():
             ),
             "records": list(latest.values()),
             "expected_locations": len(locations_by_name),
+            "forecast_model": "CatBoost local-history" if model is not None else None,
+            "model_trained_through": trained_at,
         }
     except PyMongoError:
         raise HTTPException(status_code=503, detail="Traffic database is unavailable") from None
