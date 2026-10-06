@@ -71,7 +71,7 @@ footer { margin-top: 19px; color: #6e7b77; font-size: 9px; line-height: 1.6; }
 .map-instructions { position: absolute; z-index: 500; top: 17px; left: 50%; display: flex; align-items: center; gap: 9px; transform: translateX(-50%); padding: 9px 13px; border: 1px solid rgba(12,19,22,.1); border-radius: 8px; background: rgba(250,251,248,.94); box-shadow: 0 5px 22px rgba(11,20,17,.12); color: #53635b; font-size: 11px; white-space: nowrap; pointer-events: none; }
 .tap-icon { color: #567c52; font-size: 16px; }
 .map-attribution-note { position: absolute; z-index: 500; left: 14px; bottom: 24px; padding: 6px 8px; border-radius: 4px; background: rgba(250,251,248,.9); color: #59645e; font-size: 9px; pointer-events: none; }
-.leaflet-container { font-family: 'DM Sans', sans-serif; }
+.maplibregl-map { font-family: 'DM Sans', sans-serif; }
 .traffic-marker { display: grid; place-items: center; width: 17px; height: 17px; border: 2px solid rgba(255,255,255,.95); border-radius: 50%; box-shadow: 0 1px 7px rgba(0,0,0,.36); }
 .traffic-marker.free { background: var(--free); }
 .traffic-marker.busy { background: var(--busy); }
@@ -79,8 +79,10 @@ footer { margin-top: 19px; color: #6e7b77; font-size: 9px; line-height: 1.6; }
 .route-marker { width: 15px; height: 15px; border: 3px solid white; border-radius: 50%; box-shadow: 0 1px 8px rgba(0,0,0,.4); }
 .route-marker.origin { background: #33865c; }
 .route-marker.destination { background: #db6253; border-radius: 3px; transform: rotate(45deg); }
-.leaflet-popup-content-wrapper, .leaflet-popup-tip { background: #152023; color: #f1f3ed; }
-.leaflet-popup-content { margin: 10px 13px; font-size: 11px; line-height: 1.6; }
+.maplibregl-popup-content { padding: 10px 13px; border-radius: 8px; background: #152023; color: #f1f3ed; font-size: 11px; line-height: 1.6; }
+.maplibregl-popup-tip { border-top-color: #152023; border-bottom-color: #152023; }
+.maplibregl-ctrl-group { overflow: hidden; border-radius: 7px !important; }
+.maplibregl-ctrl-attrib { font-size: 9px; }
 .popup-title { font: 700 12px Manrope, sans-serif; }
 .popup-sub { color: #aab5af; }
 

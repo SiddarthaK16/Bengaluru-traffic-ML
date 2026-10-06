@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#10191c" />
     <title>Bengaluru Traffic</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@6.12.0/dist/maplibre-gl.css" />
     <link rel="stylesheet" href="/static/styles.css" />
   </head>
   <body>
@@ -60,7 +60,7 @@
             <div class="legend-row"><span class="legend-dot busy"></span>Slowing down <span class="legend-range">50–80%</span></div>
             <div class="legend-row"><span class="legend-dot slow"></span>Heavy traffic <span class="legend-range">&lt; 50%</span></div>
           </div>
-          <footer>Traffic readings refresh automatically · Map © OpenStreetMap contributors</footer>
+          <footer>Traffic readings refresh automatically · Map © OpenFreeMap, OpenStreetMap contributors</footer>
         </aside>
         <section class="map-area" aria-label="Interactive map of Bengaluru">
           <div class="map-instructions"><span class="tap-icon">⌖</span><span id="map-hint">Select an origin, then a destination</span></div>
@@ -69,7 +69,6 @@
         </section>
       </section>
     </main>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="/static/app.js"></script>
+    <script type="module" src="/static/app.js"></script>
   </body>
 </html>
